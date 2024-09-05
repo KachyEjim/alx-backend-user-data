@@ -8,7 +8,8 @@ from typing import TypeVar
 class BasicAuth(Auth):
     """BasicAuth class"""
 
-    def extract_base64_authorization_header(self, authorization_header: str) -> str:
+    def extract_base64_authorization_header(
+            self, authorization_header: str) -> str:
         """Extract Base 64 Authorization Header"""
 
         if authorization_header is None:
@@ -78,7 +79,7 @@ class BasicAuth(Auth):
         """Gets the current user"""
         header = self.authorization_header(request)
         encoded_header = self.extract_base64_authorization_header(header)
-        decoded_header = self.decode_base64_authorization_header(encoded_header)
-        user_cred = self.extract_user_credentials(decoded_header)
+        dh = self.decode_base64_authorization_header(encoded_header)
+        user_cred = self.extract_user_credentials(dh)
         user = self.user_object_from_credentials(user_cred[0], user_cred[1])
         return user
