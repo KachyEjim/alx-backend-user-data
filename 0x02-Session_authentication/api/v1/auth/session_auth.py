@@ -1,76 +1,49 @@
 #!/usr/bin/env python3
-"""
-Module for authentication using Session auth
-"""
-
-
-from .auth import Auth
-
-from models.user import User
+"""session_auth manager"""
+from api.v1.auth.auth import Auth
 from uuid import uuid4
+from models.user import User
 
 
 class SessionAuth(Auth):
-    """_summary_
-    """
+    """SessionAuth class"""
+
     user_id_by_session_id = {}
 
     def create_session(self, user_id: str = None) -> str:
-        """_summary_
-
-        Args:
-            user_id (str, optional): _description_. Defaults to None.
-
-        Returns:
-            str: _description_
-        """
-        if user_id is None or not isinstance(user_id, str):
+        """Creates a session"""
+        if user_id is None:
             return None
-
-        id = uuid4()
-        self.user_id_by_session_id[str(id)] = user_id
-        return str(id)
+        if not isinstance(user_id, str):
+            return None
+        uid = str(uuid4())
+        self.user_id_by_session_id[uid] = user_id
+        return uid
 
     def user_id_for_session_id(self, session_id: str = None) -> str:
-        """_summary_
-
-        Args:
-            session_id (str, optional): _description_. Defaults to None.
-
-        Returns:
-                str: _description_
-        """
+        """Returns a user id based on a session id"""
         if session_id is None or not isinstance(session_id, str):
             return None
         return self.user_id_by_session_id.get(session_id)
 
     def current_user(self, request=None):
-        """_summary_
+        """Returns a user instance"""
 
-        Args:
-            request (_type_, optional): _description_. Defaults to None.
-        """
-        session_cookie = self.session_cookie(request)
-        user_id = self.user_id_for_session_id(session_cookie)
+        session_id = self.session_cookie(request)
+        user_id = self.user_id_for_session_id(session_id)
         user = User.get(user_id)
         return user
 
     def destroy_session(self, request=None):
-        """_summary_
-
-        Args:
-            request (_type_, optional): _description_. Defaults to None.
-
-        Returns:
-            _type_: _description_
-        """
+        """Delects a users session"""
         if request is None:
             return False
-        session_cookie = self.session_cookie(request)
-        if session_cookie is None:
+
+        session_id = self.session_cookie(request)
+        if session_id is None:
             return False
-        user_id = self.user_id_for_session_id(session_cookie)
-        if user_id is None:
+        instance = self.user_id_for_session_id(session_id)
+        if instance is None:
             return False
-        del self.user_id_by_session_id[session_cookie]
+        del self.user_id_by_session_id[session_id]
         return True
